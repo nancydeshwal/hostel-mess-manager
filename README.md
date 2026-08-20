@@ -13,9 +13,10 @@ A full-stack web app for managing hostel mess menus, meal skips, student feedbac
 
 ## Screenshots
 
-![Mess Board — Student View](./screenshots/student-view.png)
-
-*Add your own screenshot: save an image of the running app into a `screenshots/` folder in your repo root, name it `student-view.png` (or update the path above to match your filename), and commit it. GitHub will render it inline automatically.*
+![Mess Board — Student View](./screenshots/student_view.png)
+![Mess Board — Admin View](./screenshots/Admin_view1.png)
+![Mess Board — Admin View](./screenshots/Admin_view2.png)
+![Mess Board — Admin View](./screenshots/Admin_view3.png)
 
 ## How It Works
 
