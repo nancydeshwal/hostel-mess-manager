@@ -119,6 +119,3 @@ Full request/response schemas are available via the auto-generated Swagger docs 
 - [ ] Mobile-responsive polish
 - [ ] Export analytics as CSV/PDF
 
-## License
-
-Add your preferred license here (e.g. MIT).
