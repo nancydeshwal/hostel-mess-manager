@@ -11,7 +11,7 @@ export default function HostelSelect({ value, onChange }) {
       .listHostels()
       .then((data) => {
         setHostels(data);
-        if (!value && data.length) onChange(data[0].id);
+        if (!value && data.length) onChange(data[0]._id);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -35,7 +35,7 @@ export default function HostelSelect({ value, onChange }) {
       className="focus-ring bg-steel-800 border border-steel-700 rounded-lg px-3 py-2 text-sm text-steel-100"
     >
       {hostels.map((h) => (
-        <option key={h.id} value={h.id}>
+        <option key={h._id} value={h._id}>
           {h.name} ({h.type})
         </option>
       ))}

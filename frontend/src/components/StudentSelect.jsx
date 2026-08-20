@@ -10,7 +10,7 @@ export default function StudentSelect({ hostelId, value, onChange }) {
       .listStudents(hostelId)
       .then((data) => {
         setStudents(data);
-        if (data.length) onChange(data[0].id);
+        if (data.length) onChange(data[0]._id);
         else onChange(null);
       })
       .catch(() => setStudents([]));
@@ -27,7 +27,7 @@ export default function StudentSelect({ hostelId, value, onChange }) {
       className="focus-ring bg-steel-800 border border-steel-700 rounded-lg px-3 py-2 text-sm text-steel-100"
     >
       {students.map((s) => (
-        <option key={s.id} value={s.id}>
+        <option key={s._id} value={s._id}>
           {s.name} · {s.rollNumber}
         </option>
       ))}

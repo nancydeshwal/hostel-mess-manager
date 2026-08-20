@@ -5,6 +5,9 @@ import StudentSelect from "./StudentSelect.jsx";
 import MealCard from "./MealCard.jsx";
 import ComplaintForm from "./ComplaintForm.jsx";
 
+
+  
+
 const MEALS = ["breakfast", "lunch", "snacks", "dinner"];
 
 function todayISO() {
@@ -20,6 +23,7 @@ export default function StudentView() {
   const date = todayISO();
 
   const loadMenu = useCallback(() => {
+    console.log("loadMenu called, hostelId =", hostelId);
     if (!hostelId) return;
     setLoading(true);
     api
@@ -53,6 +57,7 @@ export default function StudentView() {
       setSkipState((prev) => ({ ...prev, [mealType]: !skipped })); // revert on failure
     }
   }
+
 
   return (
     <div className="flex flex-col gap-8">

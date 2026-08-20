@@ -1,90 +1,93 @@
-# Mess Board — Hostel Mess Waste Management & Review Analytics
+# 🍽️ Mess Board — NIT Kurukshetra Hostel Mess Manager
 
-Built for NIT Kurukshetra's 10 boys' hostels + 3 girls' hostels. Students see the
-dynamic daily menu and toggle **"Skipping Next Meal"** if they're eating out;
-mess admins get a dashboard of skip patterns, complaint analytics, and a
-linear-regression forecast of next week's grocery needs.
+A full-stack web app for managing hostel mess menus, meal skips, student feedback, and mess analytics across hostels at NIT Kurukshetra.
 
-## Stack
+## Features
 
-- **Frontend:** React (Vite) + Tailwind CSS + Chart.js
-- **Backend:** Python **FastAPI** + MongoDB (via Motor, async driver)
-- **AI/Advanced feature:** scikit-learn `LinearRegression` fitted on 21 days of
-  attendance (hostel strength − meal skips) to project the next 7 days, then
-  multiplied by each menu's key-ingredient usage rate to forecast grocery
-  quantities — no separate microservice needed, it's a route inside the same
-  FastAPI app (`/api/analytics/predict-grocery`).
+- **Daily mess menu** — View breakfast, lunch, snacks, and dinner for the selected hostel and date
+- **Meal skip tracking** — Students can mark a meal as "skipping — eating out" so the mess knows headcount in advance
+- **Hostel & student selection** — Switch between hostels and students to view/manage their meal preferences
+- **Feedback & complaints** — Students can leave feedback on meals (category + rating) and file complaints
+- **Admin dashboard** — Publish/update menus, review complaints, and view analytics
+- **Analytics** — Skip-rate summaries, complaint summaries, and grocery demand prediction based on historical data
 
-## Project layout
+## Screenshots
+
+![Mess Board — Student View](./screenshots/student-view.png)
+
+*Add your own screenshot: save an image of the running app into a `screenshots/` folder in your repo root, name it `student-view.png` (or update the path above to match your filename), and commit it. GitHub will render it inline automatically.*
+
+## How It Works
+
+1. **Pick a hostel** — On load, the app fetches the list of hostels from `/api/hostels` and auto-selects the first one. You can switch hostels anytime from the dropdown at the top.
+2. **Pick a student** — Once a hostel is selected, the student dropdown populates with that hostel's students (`/api/hostels/{id}/students`). This identifies who's viewing/skipping meals.
+3. **View today's menu** — For the selected hostel and today's date, the app calls `/api/menu?hostelId=...&date=...` and renders Breakfast, Lunch, Snacks, and Dinner as cards with their published items.
+4. **Skip a meal** — Each meal card has a "Skipping this meal — eating out" toggle. Toggling it calls `/api/skips` to record that the student won't be eating that meal, so the mess can adjust quantities. The UI updates optimistically and reverts if the request fails.
+5. **Leave feedback** — The feedback form lets a student rate a specific meal and category (e.g. quality, quantity, hygiene) and submits it via `/api/complaints`.
+6. **Admin side** — Switching to the "Admin" tab lets mess staff publish/update the day's menu, review student complaints, update complaint status, and view analytics like skip rates and predicted grocery needs — all pulled from the `/api/analytics/*` endpoints.
+
+**Note on IDs:** MongoDB documents return `_id` as the identifier field. Make sure any frontend code referencing hostel/student objects uses `_id` (not `id`) consistently, or map `_id` → `id` in the backend response — a mismatch here will silently break menu/skip/analytics calls (the UI will look fine but no data loads).
+
+## Tech Stack
+
+**Backend**
+- FastAPI (Python)
+- MongoDB
+- Uvicorn (ASGI server)
+
+**Frontend**
+- React + Vite
+- Tailwind CSS
+- react-router-dom
+
+## Project Structure
 
 ```
 hostel-mess-manager/
-├── backend/                  FastAPI app
+├── backend/
 │   ├── app/
-│   │   ├── main.py           app entrypoint, CORS, router registration
-│   │   ├── config.py         env-based settings
-│   │   ├── database.py       Motor client + collections + indexes
-│   │   ├── utils.py          ObjectId helpers / serializers
-│   │   ├── models/schemas.py Pydantic request/response models
-│   │   └── routers/
-│   │       ├── hostels.py    hostel + student CRUD
-│   │       ├── menu.py       daily dynamic menu (upsert per hostel/date/meal)
-│   │       ├── skips.py      "skipping next meal" toggle
-│   │       ├── complaints.py review/complaint CRUD + status workflow
-│   │       └── analytics.py  skip-summary, complaint-summary, grocery predictor
-│   ├── seed.py                populates demo hostels/students/menus/history
+│   │   ├── models/       # Pydantic / DB models
+│   │   ├── routers/      # API route handlers
+│   │   ├── config.py
+│   │   ├── database.py
+│   │   ├── main.py       # FastAPI app entrypoint
+│   │   └── utils.py
+│   ├── seed.py           # Seed script for sample hostels/students/menu data
 │   ├── requirements.txt
 │   └── .env.example
-└── frontend/                 React + Vite app
+└── frontend/
     ├── src/
-    │   ├── App.jsx            nav + routing (Student / Admin)
-    │   ├── api.js              fetch client for the FastAPI backend
-    │   └── components/
-    │       ├── StudentView.jsx        today's menu + skip toggles + feedback form
-    │       ├── AdminDashboard.jsx     charts + forecast + complaints inbox
-    │       ├── MealCard.jsx
-    │       ├── ComplaintForm.jsx
-    │       ├── ComplaintsList.jsx
-    │       ├── SkipTrendChart.jsx     Chart.js line chart
-    │       ├── ComplaintCategoryChart.jsx  Chart.js bar chart
-    │       ├── GroceryForecastPanel.jsx
-    │       ├── HostelSelect.jsx
-    │       └── StudentSelect.jsx
-    └── ...vite/tailwind config
+    │   ├── components/    # HostelSelect, StudentSelect, MealCard, ComplaintForm, etc.
+    │   ├── api.js          # API client wrapper
+    │   └── App.jsx
+    ├── index.html
+    ├── package.json
+    ├── tailwind.config.js
+    └── vite.config.js
 ```
 
-## Running it locally
+## Getting Started
 
-### 1. MongoDB
+### Prerequisites
+- Python 3.10+
+- Node.js 18+
+- MongoDB instance (local or hosted, e.g. MongoDB Atlas)
 
-You need a MongoDB instance reachable at the URI in `backend/.env`. Easiest
-options:
-
-```bash
-# via Docker
-docker run -d -p 27017:27017 --name mess-mongo mongo:7
-
-# or install MongoDB Community Server locally and run `mongod`
-```
-
-### 2. Backend (FastAPI)
+### Backend Setup
 
 ```bash
 cd backend
-python -m venv venv && source venv/bin/activate   # Windows: venv\Scripts\activate
+python -m venv venv
+source venv/bin/activate      # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env                                # adjust MONGO_URI if needed
-
-# populate demo data (10 boys + 3 girls hostels, one fully seeded with
-# ~21 days of realistic skip/complaint history)
-python seed.py
-
+cp .env.example .env          # then fill in your MongoDB connection string, etc.
+python seed.py                # populates sample hostels, students, and menu data
 uvicorn app.main:app --reload --port 8000
 ```
 
-API docs (Swagger UI) will be live at `http://localhost:8000/docs`.
+The API will be available at `http://localhost:8000`, with interactive docs at `http://localhost:8000/docs`.
 
-### 3. Frontend (React)
+### Frontend Setup
 
 ```bash
 cd frontend
@@ -92,33 +95,29 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:5173`. It talks to the API at `http://localhost:8000`
-by default — override with a `VITE_API_URL` env var if you deploy the backend
-elsewhere.
+The app will be available at `http://localhost:5173`.
 
-## Core flows
+> By default the frontend expects the API at `http://localhost:8000`. To point elsewhere, set `VITE_API_URL` in a `.env` file inside `frontend/`.
 
-- **Student view (`/`):** pick your hostel and yourself (stand-in for login),
-  see the day's published menu per meal, and toggle "Skipping this meal" if
-  you're eating out. Skips are upserted per student/date/meal, so toggling is
-  idempotent. A short feedback form lets you rate and comment on any meal.
-- **Admin dashboard (`/admin`):** a 14-day Chart.js line chart of skip counts
-  per meal type, a 30-day complaint-category bar chart, an average-rating /
-  open-complaints summary, a complaints inbox with a 3-stage status workflow
-  (open → in review → resolved), and the **grocery forecast panel** — pick a
-  meal type and it regresses the last 21 days of attendance, projects 7 days
-  forward, and multiplies by each ingredient's per-100-student usage rate
-  (defined per menu entry) to tell the mess how much rice, dal, paneer, etc.
-  to buy for the coming week.
+## API Overview
 
-## Extending it
+| Resource | Endpoints |
+|---|---|
+| Hostels | `GET/POST /api/hostels`, `GET/POST /api/hostels/{id}/students` |
+| Menu | `GET/POST /api/menu`, `GET /api/menu/range` |
+| Skips | `GET/POST /api/skips` |
+| Complaints | `GET/POST /api/complaints`, `PATCH /api/complaints/{id}/status` |
+| Analytics | `GET /api/analytics/skip-summary`, `GET /api/analytics/complaint-summary`, `GET /api/analytics/predict-grocery` |
 
-- `Menu.keyIngredients` is where you encode a dish's per-100-student usage
-  rate (e.g. rice: 8 kg / 100 students) — add more entries per menu to widen
-  the grocery forecast.
-- Swap `LinearRegression` for a more sophisticated model (e.g. a small
-  seasonal model or gradient boosting) in `analytics.py` without touching any
-  other layer — the route contract stays the same.
-- Authentication is stubbed out (students/admins are picked from dropdowns).
-  Wire up real login (JWT or NIT SSO) by adding an auth dependency to the
-  FastAPI routers.
+Full request/response schemas are available via the auto-generated Swagger docs at `/docs`.
+
+## Roadmap / Ideas
+
+- [ ] Authentication for students/admins
+- [ ] Push notifications for menu updates
+- [ ] Mobile-responsive polish
+- [ ] Export analytics as CSV/PDF
+
+## License
+
+Add your preferred license here (e.g. MIT).
