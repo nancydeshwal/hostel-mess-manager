@@ -143,6 +143,7 @@ frontend stores it in `localStorage` and attaches it as
   subject, so a student can never toggle or complain as someone else.
 - `require_admin` — used by menu creation and complaint status updates.
 
+<<<<<<< HEAD
 Try it yourself: log in as a student and call `POST /api/menu` from
 `/docs` with that token — you'll get a `403 Admin account required`.
 
@@ -180,3 +181,5 @@ Try it yourself: log in as a student and call `POST /api/menu` from
 - There's a full admin menu-management UI (`/admin/menu`) now — see "Core
   flows" below. `Menu.keyIngredients` entered there is exactly what feeds the
   grocery forecast.
+=======
+>>>>>>> 4144e8d4ebc139d38765b476025dd0132b41baca
