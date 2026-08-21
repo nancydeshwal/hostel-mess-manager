@@ -181,5 +181,4 @@ Try it yourself: log in as a student and call `POST /api/menu` from
 - There's a full admin menu-management UI (`/admin/menu`) now — see "Core
   flows" below. `Menu.keyIngredients` entered there is exactly what feeds the
   grocery forecast.
-=======
->>>>>>> 4144e8d4ebc139d38765b476025dd0132b41baca
+
