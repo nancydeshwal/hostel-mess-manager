@@ -83,3 +83,31 @@ class ComplaintOut(ComplaintCreate):
 
 class ComplaintStatusUpdate(BaseModel):
     status: Literal["open", "in_review", "resolved"]
+
+
+# ---------- Auth ----------
+class StudentRegister(BaseModel):
+    name: str
+    rollNumber: str
+    password: str = Field(min_length=6)
+    hostelId: str
+    roomNumber: Optional[str] = None
+
+
+class StudentLogin(BaseModel):
+    rollNumber: str
+    password: str
+
+
+class AdminLogin(BaseModel):
+    username: str
+    password: str
+
+
+class TokenOut(BaseModel):
+    accessToken: str
+    tokenType: str = "bearer"
+    role: Literal["student", "admin"]
+    id: str
+    name: Optional[str] = None
+    hostelId: Optional[str] = None

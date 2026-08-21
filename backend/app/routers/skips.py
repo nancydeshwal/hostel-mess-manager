@@ -1,8 +1,9 @@
 from datetime import datetime, date as date_type
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends, HTTPException
 from app.database import skips_col
 from app.models.schemas import SkipToggle
 from app.utils import oid, serialize, serialize_many
+from app.deps import require_student, CurrentUser
 
 router = APIRouter(prefix="/api/skips", tags=["skips"])
 
@@ -12,8 +13,12 @@ def _to_datetime(d: date_type) -> datetime:
 
 
 @router.post("", status_code=200)
-async def toggle_skip(payload: SkipToggle):
-    """Idempotent upsert - lets a student flip 'Skipping Next Meal' on/off."""
+async def toggle_skip(payload: SkipToggle, current: CurrentUser = Depends(require_student)):
+    """Idempotent upsert - lets a logged-in student flip 'Skipping Next Meal' on/off
+    for themselves only (studentId in the body must match the logged-in student)."""
+    if payload.studentId != current.id:
+        raise HTTPException(status_code=403, detail="You can only toggle your own meal skips")
+
     data = payload.model_dump()
     data["studentId"] = oid(payload.studentId)
     data["hostelId"] = oid(payload.hostelId)

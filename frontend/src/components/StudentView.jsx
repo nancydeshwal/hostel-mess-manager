@@ -1,12 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { api } from "../api.js";
-import HostelSelect from "./HostelSelect.jsx";
-import StudentSelect from "./StudentSelect.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
 import MealCard from "./MealCard.jsx";
 import ComplaintForm from "./ComplaintForm.jsx";
-
-
-  
 
 const MEALS = ["breakfast", "lunch", "snacks", "dinner"];
 
@@ -15,15 +11,15 @@ function todayISO() {
 }
 
 export default function StudentView() {
-  const [hostelId, setHostelId] = useState(null);
-  const [studentId, setStudentId] = useState(null);
+  const { auth } = useAuth();
+  const hostelId = auth?.hostelId;
+  const studentId = auth?.id;
   const [menu, setMenu] = useState({});
   const [skipState, setSkipState] = useState({});
   const [loading, setLoading] = useState(false);
   const date = todayISO();
 
   const loadMenu = useCallback(() => {
-    console.log("loadMenu called, hostelId =", hostelId);
     if (!hostelId) return;
     setLoading(true);
     api
@@ -58,20 +54,18 @@ export default function StudentView() {
     }
   }
 
-
   return (
     <div className="flex flex-col gap-8">
-      <section className="flex flex-col sm:flex-row sm:items-end gap-4 justify-between">
+      <section className="flex flex-col sm:flex-row sm:items-end gap-2 justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-steel-500 mb-1">
             {new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
           </p>
           <h1 className="font-display text-4xl text-steel-100">Today's Mess Menu</h1>
         </div>
-        <div className="flex flex-wrap gap-3 items-center">
-          <HostelSelect value={hostelId} onChange={setHostelId} />
-          {hostelId && <StudentSelect hostelId={hostelId} value={studentId} onChange={setStudentId} />}
-        </div>
+        <p className="text-sm text-steel-400">
+          Logged in as <span className="text-steel-200 font-medium">{auth?.name}</span>
+        </p>
       </section>
 
       {loading && <p className="text-sm text-steel-500">Loading menu…</p>}

@@ -1,9 +1,10 @@
 from datetime import datetime, date as date_type
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from pymongo.errors import DuplicateKeyError
 from app.database import menu_col
 from app.models.schemas import MenuCreate
 from app.utils import oid, serialize, serialize_many
+from app.deps import require_admin, CurrentUser
 
 router = APIRouter(prefix="/api/menu", tags=["menu"])
 
@@ -21,7 +22,7 @@ async def get_menu(hostelId: str, date: date_type = Query(...)):
 
 
 @router.post("", status_code=201)
-async def upsert_menu(payload: MenuCreate):
+async def upsert_menu(payload: MenuCreate, current: CurrentUser = Depends(require_admin)):
     data = payload.model_dump()
     data["hostelId"] = oid(payload.hostelId)
     data["date"] = _to_datetime(payload.date)

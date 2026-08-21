@@ -1,8 +1,9 @@
 from datetime import datetime, date as date_type
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends, HTTPException
 from app.database import complaints_col
 from app.models.schemas import ComplaintCreate, ComplaintStatusUpdate
 from app.utils import oid, serialize, serialize_many
+from app.deps import require_student, require_admin, CurrentUser
 
 router = APIRouter(prefix="/api/complaints", tags=["complaints"])
 
@@ -12,7 +13,10 @@ def _to_datetime(d: date_type) -> datetime:
 
 
 @router.post("", status_code=201)
-async def create_complaint(payload: ComplaintCreate):
+async def create_complaint(payload: ComplaintCreate, current: CurrentUser = Depends(require_student)):
+    if payload.studentId != current.id:
+        raise HTTPException(status_code=403, detail="You can only submit feedback as yourself")
+
     data = payload.model_dump()
     data["studentId"] = oid(payload.studentId)
     data["hostelId"] = oid(payload.hostelId)
@@ -41,7 +45,9 @@ async def list_complaints(
 
 
 @router.patch("/{complaint_id}/status")
-async def update_status(complaint_id: str, payload: ComplaintStatusUpdate):
+async def update_status(
+    complaint_id: str, payload: ComplaintStatusUpdate, current: CurrentUser = Depends(require_admin)
+):
     result = await complaints_col.find_one_and_update(
         {"_id": oid(complaint_id)},
         {"$set": {"status": payload.status}},

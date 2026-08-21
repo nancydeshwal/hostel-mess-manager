@@ -1,6 +1,10 @@
-import { NavLink, Routes, Route, Navigate } from "react-router-dom";
+import { NavLink, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import StudentView from "./components/StudentView.jsx";
 import AdminDashboard from "./components/AdminDashboard.jsx";
+import MenuManager from "./components/MenuManager.jsx";
+import LoginPage from "./components/LoginPage.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import { useAuth } from "./context/AuthContext.jsx";
 
 function NavTab({ to, children }) {
   return (
@@ -19,6 +23,34 @@ function NavTab({ to, children }) {
   );
 }
 
+function HeaderNav() {
+  const { auth, logout } = useAuth();
+  const navigate = useNavigate();
+
+  function handleLogout() {
+    logout();
+    navigate("/login");
+  }
+
+  return (
+    <nav className="flex items-center gap-2">
+      {auth?.role === "student" && <NavTab to="/">Student</NavTab>}
+      {auth?.role === "admin" && <NavTab to="/admin">Dashboard</NavTab>}
+      {auth?.role === "admin" && <NavTab to="/admin/menu">Menu</NavTab>}
+      {auth ? (
+        <button
+          onClick={handleLogout}
+          className="focus-ring ml-2 px-4 py-2 rounded-full text-sm font-medium tracking-wide text-steel-400 hover:text-chili-500 hover:bg-steel-800 transition-colors"
+        >
+          {auth.name ? `Log out (${auth.name.split(" ")[0]})` : "Log out"}
+        </button>
+      ) : (
+        <NavTab to="/login">Log in</NavTab>
+      )}
+    </nav>
+  );
+}
+
 export default function App() {
   return (
     <div className="min-h-screen flex flex-col">
@@ -32,18 +64,38 @@ export default function App() {
               NIT Kurukshetra
             </span>
           </div>
-          <nav className="flex gap-2">
-            <NavTab to="/">Student</NavTab>
-            <NavTab to="/admin">Admin</NavTab>
-          </nav>
+          <HeaderNav />
         </div>
       </header>
 
       <main className="flex-1 max-w-6xl w-full mx-auto px-5 py-8">
         <Routes>
-          <Route path="/" element={<StudentView />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute role="student">
+                <StudentView />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute role="admin">
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/menu"
+            element={
+              <ProtectedRoute role="admin">
+                <MenuManager />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </main>
 

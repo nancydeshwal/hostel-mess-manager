@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { api } from "../api.js";
 import HostelSelect from "./HostelSelect.jsx";
 import SkipTrendChart from "./SkipTrendChart.jsx";
@@ -28,7 +29,15 @@ export default function AdminDashboard() {
           <p className="text-xs uppercase tracking-[0.2em] text-steel-500 mb-1">Admin dashboard</p>
           <h1 className="font-display text-4xl text-steel-100">Waste & Demand Analytics</h1>
         </div>
-        <HostelSelect value={hostelId} onChange={setHostelId} />
+        <div className="flex items-center gap-3">
+          <Link
+            to="/admin/menu"
+            className="focus-ring text-sm text-mango-400 hover:text-mango-300 font-medium whitespace-nowrap"
+          >
+            Manage today's menu →
+          </Link>
+          <HostelSelect value={hostelId} onChange={setHostelId} />
+        </div>
       </section>
 
       <section className="grid sm:grid-cols-3 gap-4">

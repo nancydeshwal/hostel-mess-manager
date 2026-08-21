@@ -2,13 +2,26 @@
 Seed script: creates demo hostels, students, a week of menus with key ingredients,
 random meal-skip history, and a few complaints so the dashboard has data to show.
 
+Also creates login credentials:
+- One demo admin account
+- Every seeded student gets the same demo password (see DEMO_STUDENT_PASSWORD below)
+  so you can log in as any of them to try the student view.
+
 Run with:  python seed.py
 """
 import asyncio
 import random
 from datetime import datetime, timedelta
 
-from app.database import hostels_col, students_col, menu_col, skips_col, complaints_col, ensure_indexes
+from app.database import (
+    hostels_col, students_col, menu_col, skips_col, complaints_col,
+    admins_col, ensure_indexes,
+)
+from app.security import hash_password
+
+DEMO_STUDENT_PASSWORD = "student123"   # log in with any seeded rollNumber + this password
+DEMO_ADMIN_USERNAME = "admin"
+DEMO_ADMIN_PASSWORD = "admin123"
 
 HOSTEL_NAMES_BOYS = [f"Boys Hostel {i}" for i in range(1, 11)]
 HOSTEL_NAMES_GIRLS = ["Girls Hostel 1", "Girls Hostel 2", "Girls Hostel 3"]
@@ -38,8 +51,15 @@ async def main():
     await ensure_indexes()
 
     print("Clearing existing demo collections...")
-    for col in (hostels_col, students_col, menu_col, skips_col, complaints_col):
+    for col in (hostels_col, students_col, menu_col, skips_col, complaints_col, admins_col):
         await col.delete_many({})
+
+    print(f"Creating demo admin account (username='{DEMO_ADMIN_USERNAME}', password='{DEMO_ADMIN_PASSWORD}')...")
+    await admins_col.insert_one({
+        "username": DEMO_ADMIN_USERNAME,
+        "passwordHash": hash_password(DEMO_ADMIN_PASSWORD),
+        "name": "Mess Administrator",
+    })
 
     print("Creating hostels...")
     hostel_ids = []
@@ -57,12 +77,14 @@ async def main():
 
     print(f"Registering {strength} students in {hostel_doc['name']}...")
     student_ids = []
+    demo_password_hash = hash_password(DEMO_STUDENT_PASSWORD)
     for i in range(1, strength + 1):
         res = await students_col.insert_one({
             "name": f"Student {i}",
             "rollNumber": f"NITK-{demo_hostel_id}-{i:04d}"[:40],
             "hostelId": demo_hostel_id,
             "roomNumber": f"{100 + i // 4}-{chr(65 + i % 4)}",
+            "passwordHash": demo_password_hash,
         })
         student_ids.append(res.inserted_id)
 
@@ -120,6 +142,14 @@ async def main():
                 })
 
     print("Seed complete. Demo hostel id:", str(demo_hostel_id))
+    print()
+    print("=" * 60)
+    print("LOGIN CREDENTIALS FOR TESTING")
+    print("=" * 60)
+    print(f"Admin login   -> username: {DEMO_ADMIN_USERNAME}  password: {DEMO_ADMIN_PASSWORD}")
+    print(f"Student login -> roll number: NITK-{demo_hostel_id}-0001  password: {DEMO_STUDENT_PASSWORD}")
+    print(f"                 (any seeded student roll number works, e.g. NITK-{demo_hostel_id}-0002, ...0003, etc.)")
+    print("=" * 60)
 
 
 if __name__ == "__main__":

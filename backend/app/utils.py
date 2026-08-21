@@ -9,11 +9,15 @@ def oid(id_str: str) -> ObjectId:
 
 
 def serialize(doc: dict) -> dict:
-    """Convert Mongo document (with ObjectId) into a JSON-safe dict with string id."""
+    """Convert Mongo document (with ObjectId) into a JSON-safe dict with string id.
+
+    Outputs the id under the key "id" (not "_id") since that's what the
+    frontend expects everywhere (h.id, s.id, c.id, etc.).
+    """
     if doc is None:
         return None
     doc = dict(doc)
-    doc["_id"] = str(doc.pop("_id"))
+    doc["id"] = str(doc.pop("_id"))
     for key in ("hostelId", "studentId"):
         if key in doc and isinstance(doc[key], ObjectId):
             doc[key] = str(doc[key])

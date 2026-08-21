@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 from app.database import ensure_indexes
-from app.routers import hostels, menu, skips, complaints, analytics
+from app.routers import hostels, menu, skips, complaints, analytics, auth
 
 settings = get_settings()
 
@@ -26,6 +26,7 @@ app.include_router(menu.router)
 app.include_router(skips.router)
 app.include_router(complaints.router)
 app.include_router(analytics.router)
+app.include_router(auth.router)
 
 
 @app.on_event("startup")

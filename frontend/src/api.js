@@ -1,10 +1,15 @@
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
+let authToken = null;
+export function setAuthToken(token) {
+  authToken = token;
+}
+
 async function request(path, options = {}) {
-  const res = await fetch(`${BASE_URL}${path}`, {
-    headers: { "Content-Type": "application/json" },
-    ...options,
-  });
+  const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
+  if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
+
+  const res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.detail || `Request failed: ${res.status}`);
@@ -13,6 +18,12 @@ async function request(path, options = {}) {
 }
 
 export const api = {
+  // auth
+  studentRegister: (data) => request("/api/auth/student/register", { method: "POST", body: JSON.stringify(data) }),
+  studentLogin: (data) => request("/api/auth/student/login", { method: "POST", body: JSON.stringify(data) }),
+  adminLogin: (data) => request("/api/auth/admin/login", { method: "POST", body: JSON.stringify(data) }),
+  me: () => request("/api/auth/me"),
+
   // hostels
   listHostels: () => request("/api/hostels"),
   createHostel: (data) => request("/api/hostels", { method: "POST", body: JSON.stringify(data) }),
